@@ -1,13 +1,13 @@
 ﻿
-// (function() {
 var innerContent = function () {
     "use strict";
 
     let initialized = false;
     const moves = ['king', 'queen', 'rookl', 'rookr', 'bishop', 'knightl', 'knightr',
-                   'pawnl', 'pawn', 'pawnr'];
+                   'pawnl', 'pawn', 'pawnr', 'queen2'];
     let key2move = {};
     let mouse_x = 0, mouse_y = 0;
+
 
     let getCookie = function(cname) {
         let name = cname + "=";
@@ -15,13 +15,9 @@ var innerContent = function () {
         let ca = decodedCookie.split(";");
 
         for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
+            let c = ca[i].trim();
 
-            while (c.charAt(0) == " ") {
-                c = c.substring(1);
-            }
-
-            if (c.indexOf(name) == 0) {
+            if (c.startsWith(name)) {
                 return decodeURIComponent(c.substring(name.length, c.length));
             }
         }
@@ -105,25 +101,23 @@ var innerContent = function () {
     };
 
     console.log('lichess keyboard extension loaded');
-
     
     document.addEventListener("keydown", keyDown, false);
     document.addEventListener("mousemove", mouseMove, false);
 };
-// })();
 
-{
+(function() {
+    "use strict";
     let nonce, src, text;
+
     const observer = new MutationObserver((mutations, observer) => {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName.toLowerCase() === 'script') {
                 let script = mutation.addedNodes[0];
                 if (script.src.indexOf('round') !== -1) {
-                    console.log('found and removed', script.src, script);
                     src = script.src;
                     script.parentElement.removeChild(script)
                 } else if (script.innerText.indexOf('lichess.load.then(()=>{LichessRound') !== -1) {
-                    console.log('found and removed 2', script.src, script);
                     nonce = script.getAttribute('nonce');
                     text = script.innerText;
                     script.parentElement.removeChild(script)
@@ -155,5 +149,5 @@ var innerContent = function () {
             document.body.appendChild(windowScript);
         });
     }
-}
+})();
 
