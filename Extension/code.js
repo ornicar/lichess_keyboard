@@ -122,10 +122,10 @@ var innerContent = function () {
             let pieces = lichess_board.getElementsByClassName(cls);
 
             for (let idx = 0; idx < pieces.length; idx++) {
-                const coords = get_piece_coords(pieces[idx].getBoundingClientRect());
+                const [a, b] = get_piece_coords(pieces[idx].getBoundingClientRect());
 
-                if (callback(coords)) {
-                    return [true, coords[0], coords[1]];
+                if (callback(a, b)) {
+                    return [true, a, b];
                 }
             }
 
@@ -135,9 +135,25 @@ var innerContent = function () {
         // find the piece that can be moved here
         let find_legal_move = function() {
             if (move === 'pawn') {
-                return find_piece(coords => {
-                    const [a, b] = coords;
+                return find_piece((a, b) => {
                     return a == x && (b == y + 1 || b == y + 2);
+                });
+            } else if (move === 'pawnl') {
+                return find_piece((a, b) => {
+                    return a == x + 1 && b == y + 1;
+                });
+            } else if (move === 'pawnr') {
+                return find_piece((a, b) => {
+                    return a == x - 1 && b == y + 1;
+                });
+            } else if (piece === 'knight') {
+                return find_piece((a, b) => {
+                    const d1 = Math.round(Math.abs(a - x)), d2 = Math.round(Math.abs(b - y));
+                    return (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1);
+                });
+            } else if (piece === 'rook') {
+                return find_piece((a, b) => {
+                    return a == x || b == y;
                 });
             }
             
