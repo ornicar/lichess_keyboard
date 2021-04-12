@@ -117,11 +117,15 @@ var innerContent = function () {
         }
 
         // find first piece matching the criterio
-        let find_piece = function(callback /*, reverse_order*/) {
+        let find_piece = function(reverse_order, callback) {
             const cls = `${my_color} ${piece}`;
             let pieces = lichess_board.getElementsByClassName(cls);
 
-            for (let idx = 0; idx < pieces.length; idx++) {
+            const start = (reverse_order ? pieces.length - 1 : 0);
+            const end = (reverse_order ? -1 : pieces.length);
+            const delta = (reverse_order ? -1 : 1);
+
+            for (let idx = start; idx != end; idx += delta) {
                 const [a, b] = get_piece_coords(pieces[idx].getBoundingClientRect());
 
                 if ((a != x || b != y) && callback(a, b)) {
@@ -135,37 +139,37 @@ var innerContent = function () {
         // find the piece that can be moved here
         let find_legal_move = function() {
             if (move === 'pawn') {
-                return find_piece((a, b) => {
+                return find_piece(false, (a, b) => {
                     return a == x && (b == y + 1 || b == y + 2);
                 });
             } else if (move === 'pawnl') {
-                return find_piece((a, b) => {
+                return find_piece(false, (a, b) => {
                     return a == x + 1 && b == y + 1;
                 });
             } else if (move === 'pawnr') {
-                return find_piece((a, b) => {
+                return find_piece(false, (a, b) => {
                     return a == x - 1 && b == y + 1;
                 });
             } else if (piece === 'knight') {
-                return find_piece((a, b) => {
+                return find_piece((move === 'knightr') ^ (my_color === 'black'), (a, b) => {
                     const d1 = Math.round(Math.abs(a - x)), d2 = Math.round(Math.abs(b - y));
                     return (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1);
                 });
             } else if (piece === 'rook') {
-                return find_piece((a, b) => {
+                return find_piece((move === 'rookr') ^ (my_color === 'black'), (a, b) => {
                     return a == x || b == y;
                 });
             } else if (move === 'bishop') {
-                return find_piece((a, b) => {
+                return find_piece(false, (a, b) => {
                     return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y));
                 });
             } else if (move === 'queen') {
-                return find_piece((a, b) => {
+                return find_piece((move === 'queen2'), (a, b) => {
                     return a == x || b == y ||
                            (Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)));
                 });
             } else if (move === 'king') {
-                return find_piece((a, b) => true);
+                return find_piece(false, (a, b) => true);
             }
             
             return [false, 0, 0];
@@ -208,8 +212,6 @@ var innerContent = function () {
 
         const move = key2move[key];
         const piece = move2piece[move];
-
-        console.log('wanna move', move, 'to', x, y);
 
         event.stopPropagation();
         event.preventDefault();    
