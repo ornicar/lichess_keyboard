@@ -3,8 +3,14 @@ var innerContent = function () {
     "use strict";
 
     let initialized = false;
-    const moves = ['king', 'queen', 'rookl', 'rookr', 'bishop', 'knightl', 'knightr',
-                   'pawnl', 'pawn', 'pawnr', 'queen2'];
+
+    const moves = ['king', 'queen', 'queen2', 'rookl', 'rookr', 'bishop', 'knightl', 'knightr',
+                   'pawnl', 'pawn', 'pawnr'];
+
+    const move2piece = {king: 'king', queen: 'queen', queen2: 'queen', rookl: 'rook',
+                        rookr: 'rook', bishop: 'bishop', knightl: 'knight', knightr: 'knight',
+                        pawnl: 'pawn', pawn: 'pawn', pawnr: 'pawn'};
+
     let key2move = {};
     let mouse_x = 0, mouse_y = 0;
     let my_color = 'white';
@@ -43,18 +49,12 @@ var innerContent = function () {
         }
     };
 
-    let mouseMove = function (e) {
+    let mouseMove = function(e) {
         mouse_x = e.clientX;
         mouse_y = e.clientY;
     };
 
-    let mouseEvent = function (board, type, x, y) {
-        let e = new MouseEvent(type, {view: window, bubbles: true, cancelable: false,
-                                      clientX: x, clientY: y});
-        board.dispatchEvent(e);
-    }
-
-    let get_color = function () { 
+    let get_color = function() { 
         var bparent = $(".cg-wrap")[0];
         return bparent.className.includes("orientation-black") ? "black" : "white";
     };
@@ -94,14 +94,63 @@ var innerContent = function () {
         }
     }
 
-
     let keyDown = function(event) {
-        let board = document.getElementsByTagName('cg-board');
 
-        if (board.length != 1) {
+        let mouseEvent = function(type, x, y) {
+            let e = new MouseEvent(type, {view: window, bubbles: true, cancelable: false,
+                                          clientX: x, clientY: y});
+            lichess_board.dispatchEvent(e);
+        }
+
+        // transforms screen coordinates to board logical coordinates (top left is 0, 0).
+        let get_board_coords = function(screen_x, screen_y) {
+            const x = Math.floor((screen_x - board_rect.left) / board_rect.width * 8);
+            const y = Math.floor((screen_y - board_rect.top) / board_rect.height * 8);
+
+            return [x, y]
+        }
+
+        // calculates logical coordinates of the piece
+        let get_piece_coords = function(rect) {
+            const x = (rect.left + rect.right) / 2, y = (rect.top + rect.bottom) / 2;
+            return get_board_coords(x, y)
+        }
+
+        // find first piece matching the criterio
+        let find_piece = function(callback /*, reverse_order*/) {
+            const cls = `${my_color} ${piece}`;
+            let pieces = lichess_board.getElementsByClassName(cls);
+
+            for (let idx = 0; idx < pieces.length; idx++) {
+                const coords = get_piece_coords(pieces[idx].getBoundingClientRect());
+
+                if (callback(coords)) {
+                    return [true, coords[0], coords[1]];
+                }
+            }
+
+            return [false, 0, 0];
+        };
+
+        // find the piece that can be moved here
+        let find_legal_move = function() {
+            if (move === 'pawn') {
+                return find_piece(coords => {
+                    const [a, b] = coords;
+                    return a == x && (b == y + 1 || b == y + 2);
+                });
+            }
+            
+            return [false, 0, 0];
+        }
+
+
+        let lichess_board = document.getElementsByTagName('cg-board');
+
+        if (lichess_board.length != 1) {
             return;
         } else {
-            board = board[0];
+            lichess_board = lichess_board[0];
         }
             
         if (!initialized) {
@@ -119,35 +168,36 @@ var innerContent = function () {
             return;
         }
 
-        const rect = board.getBoundingClientRect();
-        const square_size = rect.height / 8;
+        const board_rect = lichess_board.getBoundingClientRect();
+        const square_size = board_rect.height / 8;
 
-        if (mouse_x < rect.left || mouse_x >= rect.right || mouse_y < rect.top || mouse_y >= rect.bottom) {
+        if (mouse_x < board_rect.left || mouse_x >= board_rect.right ||
+            mouse_y < board_rect.top || mouse_y >= board_rect.bottom) {
             return;
         }
 
-        // console.log('rect', rect, 'square_size', square_size);
 
-        const x = Math.floor((mouse_x - rect.left) / rect.width * 8);
-        const y = Math.floor((mouse_y - rect.top) / rect.height * 8);
+        const [x, y] = get_board_coords(mouse_x, mouse_y);
 
-        let move = key2move[key];
+        const move = key2move[key];
+        const piece = move2piece[move];
+
         console.log('wanna move', move, 'to', x, y);
 
         event.stopPropagation();
         event.preventDefault();    
 
 
-        let check_square = function(x, y) {
-        };
+        let [found, piece_x, piece_y] = find_legal_move();
 
-        if (move == 'pawn' && y < 7) 
-        {
-            mouseEvent(board, 'mousedown', mouse_x, mouse_y + square_size);
-            mouseEvent(board, 'mouseup', mouse_x, mouse_y + square_size);
+        if (found) {
+            const rel_x = piece_x - x, rel_y = piece_y - y;
 
-            mouseEvent(board, 'mousedown', mouse_x, mouse_y);
-            mouseEvent(board, 'mouseup', mouse_x, mouse_y);
+            mouseEvent('mousedown', mouse_x + rel_x * square_size, mouse_y + rel_y * square_size);
+            mouseEvent('mouseup', mouse_x + rel_x * square_size, mouse_y + rel_y * square_size);
+
+            mouseEvent('mousedown', mouse_x, mouse_y);
+            mouseEvent('mouseup', mouse_x, mouse_y);
         }
     };
 
