@@ -124,7 +124,7 @@ var innerContent = function () {
             for (let idx = 0; idx < pieces.length; idx++) {
                 const [a, b] = get_piece_coords(pieces[idx].getBoundingClientRect());
 
-                if (callback(a, b)) {
+                if ((a != x || b != y) && callback(a, b)) {
                     return [true, a, b];
                 }
             }
@@ -155,6 +155,17 @@ var innerContent = function () {
                 return find_piece((a, b) => {
                     return a == x || b == y;
                 });
+            } else if (move === 'bishop') {
+                return find_piece((a, b) => {
+                    return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y));
+                });
+            } else if (move === 'queen') {
+                return find_piece((a, b) => {
+                    return a == x || b == y ||
+                           (Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)));
+                });
+            } else if (move === 'king') {
+                return find_piece((a, b) => true);
             }
             
             return [false, 0, 0];
