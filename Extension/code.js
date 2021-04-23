@@ -116,7 +116,7 @@ var innerContent = function () {
             return get_board_coords(x, y)
         }
 
-        // find first piece matching the criterio
+        // find the first piece matching the criterio
         let find_piece = function(reverse_order, callback) {
             const cls = `${my_color} ${piece}`;
             let pieces = lichess_board.getElementsByClassName(cls);
@@ -152,8 +152,7 @@ var innerContent = function () {
                 });
             } else if (piece === 'knight') {
                 return find_piece((move === 'knightr') ^ (my_color === 'black'), (a, b) => {
-                    const d1 = Math.round(Math.abs(a - x)), d2 = Math.round(Math.abs(b - y));
-                    return (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1);
+                    return Math.round(Math.abs(a - x)) + Math.round(Math.abs(b - y)) == 3;
                 });
             } else if (piece === 'rook') {
                 return find_piece((move === 'rookr') ^ (my_color === 'black'), (a, b) => {
@@ -239,20 +238,28 @@ var innerContent = function () {
 (function() {
     "use strict";
     let nonce, src, text;
+    let activate = true;
 
     const observer = new MutationObserver((mutations, observer) => {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName.toLowerCase() === 'script') {
                 let script = mutation.addedNodes[0];
-                if (script.src.indexOf('round') !== -1) {
-                    src = script.src;
-                    script.parentElement.removeChild(script)
-                } else if (script.innerText.indexOf('lichess.load.then(()=>{LichessRound') !== -1) {
-                    nonce = script.getAttribute('nonce');
-                    text = script.innerText;
-                    script.parentElement.removeChild(script)
-                    observer.disconnect();
-                    finishLoading();
+
+                if (script.src.endsWith('chessground.min.js')) {
+                    activate = false;
+                }
+
+                if (activate) {
+                    if (src === undefined && script.src !== '' && !script.src.endsWith('lichess.min.js')) {
+                        src = script.src;
+                        script.parentElement.removeChild(script);
+                    } else if (src !== undefined && script.src === '') {
+                        nonce = script.getAttribute('nonce');
+                        text = script.innerText;
+                        script.parentElement.removeChild(script)
+                        observer.disconnect();
+                        finishLoading();
+                    }
                 }
             }
         })
