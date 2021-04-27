@@ -152,7 +152,8 @@ var innerContent = function () {
                 });
             } else if (piece === 'knight') {
                 return find_piece((move === 'knightr') ^ (my_color === 'black'), (a, b) => {
-                    return Math.round(Math.abs(a - x)) + Math.round(Math.abs(b - y)) == 3;
+                    const d1 = Math.round(Math.abs(a - x)), d2 = Math.round(Math.abs(b - y));
+                    return (d1 == 1 && d2 == 2) || (d1 == 2 && d2 == 1);
                 });
             } else if (piece === 'rook') {
                 return find_piece((move === 'rookr') ^ (my_color === 'black'), (a, b) => {
