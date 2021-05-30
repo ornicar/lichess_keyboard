@@ -116,10 +116,36 @@ var innerContent = function () {
             return get_board_coords(x, y)
         }
 
+        // checks whether the given path is free of other pieces.
+        // Both start and end  must be on the same line: horizontal, vertical or diagonal.
+        let is_path_clear = function(x1, y1, x2, y2) {
+            const dx = Math.sign(x2 - x1), dy = Math.sign(y2 - y1);
+            let path = new Set();
+
+            for (let i = 1, x = x1 + dx, y = y1 + dy; i < 8; i++, x += dx, y += dy) {
+                if (x == x2 && y == y2) {
+                    break;
+                }
+
+                path.add(8 * x + y);
+            }
+
+
+            for (const piece of lichess_board.getElementsByTagName('piece')) {
+                const [x, y] = get_piece_coords(piece.getBoundingClientRect());
+
+                if (path.has(8 * x + y)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         // find the first piece matching the criterio
-        let find_piece = function(reverse_order, callback) {
+        let find_piece = function(reverse_order, is_suitable) {
             const cls = `${my_color} ${piece}`;
-            let pieces = lichess_board.getElementsByClassName(cls);
+            const pieces = lichess_board.getElementsByClassName(cls);
 
             const start = (reverse_order ? pieces.length - 1 : 0);
             const end = (reverse_order ? -1 : pieces.length);
@@ -128,7 +154,7 @@ var innerContent = function () {
             for (let idx = start; idx != end; idx += delta) {
                 const [a, b] = get_piece_coords(pieces[idx].getBoundingClientRect());
 
-                if ((a != x || b != y) && callback(a, b)) {
+                if ((a != x || b != y) && is_suitable(a, b)) {
                     return [true, a, b];
                 }
             }
@@ -140,7 +166,7 @@ var innerContent = function () {
         let find_legal_move = function() {
             if (move === 'pawn') {
                 return find_piece(false, (a, b) => {
-                    return a == x && (b == y + 1 || b == y + 2);
+                    return a == x && (b == y + 1 || b == y + 2) && is_path_clear(a, b, x, y);
                 });
             } else if (move === 'pawnl') {
                 return find_piece(false, (a, b) => {
@@ -157,16 +183,18 @@ var innerContent = function () {
                 });
             } else if (piece === 'rook') {
                 return find_piece((move === 'rookr') ^ (my_color === 'black'), (a, b) => {
-                    return a == x || b == y;
+                    return (a == x || b == y) && is_path_clear(a, b, x, y);
                 });
             } else if (move === 'bishop') {
                 return find_piece(false, (a, b) => {
-                    return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y));
+                    return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y))
+                           && is_path_clear(a, b, x, y);
                 });
             } else if (move === 'queen') {
                 return find_piece((move === 'queen2'), (a, b) => {
-                    return a == x || b == y ||
-                           (Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)));
+                    return (a == x || b == y ||
+                           Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)))
+                           && is_path_clear(a, b, x, y);
                 });
             } else if (move === 'king') {
                 return find_piece(false, (a, b) => true);
