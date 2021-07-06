@@ -248,6 +248,9 @@ var innerContent = function () {
 
     console.log('lichess keyboard extension loaded');
 
+    document.addEventListener("keydown", keyDown, false);
+    document.addEventListener("mousemove", mouseMove, false);
+
 
     const observer = new MutationObserver((mutations, observer) => {
         mutations.forEach((mutation) => {
@@ -266,8 +269,203 @@ var innerContent = function () {
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
 
-    document.addEventListener("keydown", keyDown, false);
-    document.addEventListener("mousemove", mouseMove, false);
+    var container = document.createElement("div");
+    var keyORnot, KeyCO;
+    KeyCO = getCookie("KeyB");
+    if (KeyCO != "") {
+        keyORnot = parseInt(KeyCO, 10);
+    } else {
+        keyORnot = 1;
+    }
+    var lichess = document.getElementById("main-wrap");
+    lichess.appendChild(container);
+    container.id = "container";
+    container.innerHTML = '<div id="container">' + '<button id="keyboardO">Show</button>' + '<div id="pieces">' + '<label>Pawn Up :</label><input type="text" value="w" id="Kpawnu" class="keyB">' + '<label>Pawn \u21d6 :</label><input type="text" value="q" id="Kpawnl" class="keyB">' + '<label>Pawn \u21d7 :</label><input type = "text" value="e" id="Kpawnr" class="keyB">' + '<label>Queen :</label><input type="text" value="s" id="Kqueen" class="keyB">' + '<label>Rook :</label><input type="text" value="1" id="Krookl" class="keyB">' +
+        '<label>Rook \u25a3 :</label><input type="text" value="3" id="Krookr" class="keyB">' + '<label>Knight :</label><input type="text" value="a" id="Kknightl" class="keyB">' + '<label>Knight \u25a3 :</label><input type="text" value="d" id="Kknightr" class="keyB">' + '<label>Bishop :</label><input type="text" value="Space" id="Kbishop" class="keyB">' + '<label>King :</label><input type="text" value="shift" id="Kking" class="keyB">' + '<label><button id="save">Save</button></label>' + "<summary> Hover the cursor over a destination square and press a corresponding key</summary>" +
+        "</div>" + "</div>";
+
+    var button1 = document.getElementById("keyboardO");
+    var pieces = document.getElementById("pieces");
+    var myInputs = document.getElementsByClassName("keyB");
+
+
+    button1.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (keyORnot == 1) {
+            button1.innerText = "Show";
+            document.getElementById("pieces").style.display = "none";
+            // RemoveInputListen();
+            keyORnot = 0;
+            setCookie("KeyB", "0");
+        } else {
+            keyORnot = 1;
+            button1.innerText = "Hide";
+            document.getElementById("pieces").style.display = "block";
+            // AddInputListen();
+            setCookie("KeyB", "1");
+        }
+        button1.blur();
+    });
+
+    if (keyORnot == 1) {
+        button1.innerText = "Hide";
+        document.getElementById("pieces").style.display = "block";
+        // AddInputListen();
+    } else {
+        button1.innerText = "Show";
+        document.getElementById("pieces").style.display = "none";
+    }
+
+    // pFKc = getCookie("pawn");
+    // if (pFKc != "") {
+    //     if (pFKc == "Space") {
+    //         pFK = " ";
+    //     } else {
+    //         pFK = pFKc;
+    //     }
+    //     document.getElementById("Kpawnu").value = pFKc;
+    // } else {
+    //     pFK = "w";
+    // }
+    // pLKc = getCookie("pawnl");
+    // if (pLKc != "") {
+    //     if (pLKc == "Space") {
+    //         pLK = " ";
+    //     } else {
+    //         pLK = pLKc;
+    //     }
+    //     document.getElementById("Kpawnl").value = pLKc;
+    // } else {
+    //     pLK = "q";
+    // }
+    // pRKc = getCookie("pawnr");
+    // if (pRKc != "") {
+    //     if (pRKc == "Space") {
+    //         pRK = " ";
+    //     } else {
+    //         pRK = pRKc;
+    //     }
+    //     document.getElementById("Kpawnr").value = pRKc;
+    // } else {
+    //     pRK = "e";
+    // }
+    // qKc = getCookie("queen");
+    // if (qKc != "") {
+    //     if (qKc == "Space") {
+    //         qK = " ";
+    //     } else {
+    //         qK = qKc;
+    //     }
+    //     document.getElementById("Kqueen").value = qKc;
+    // } else {
+    //     qK = "s";
+    // }
+    // roLc = getCookie("rookl");
+    // if (roLc != "") {
+    //     if (roLc == "Space") {
+    //         roL = " ";
+    //     } else {
+    //         roL = roLc;
+    //     }
+    //     document.getElementById("Krookl").value = roLc;
+    // } else {
+    //     roL = "1";
+    // }
+    // roRc = getCookie("rookr");
+    // if (roRc != "") {
+    //     if (roRc == "Space") {
+    //         roR = " ";
+    //     } else {
+    //         roR = roRc;
+    //     }
+    //     document.getElementById("Krookr").value = roRc;
+    // } else {
+    //     roR = "3";
+    // }
+    // knLc = getCookie("knightl");
+    // if (knLc != "") {
+    //     if (knLc == "Space") {
+    //         knL = " ";
+    //     } else {
+    //         knL = knLc;
+    //     }
+    //     document.getElementById("Kknightl").value = knLc;
+    // } else {
+    //     knL = "a";
+    // }
+    // knRc = getCookie("knightr");
+    // if (knRc != "") {
+    //     if (knRc == "Space") {
+    //         knR = " ";
+    //     } else {
+    //         knR = knRc;
+    //     }
+    //     document.getElementById("Kknightr").value = knRc;
+    // } else {
+    //     knR = "d";
+    // }
+    // biKc = getCookie("bishop");
+    // if (biKc != "") {
+    //     if (biKc == "Space") {
+    //         biK = " ";
+    //     } else {
+    //         biK = biKc;
+    //     }
+    //     document.getElementById("Kbishop").value = biKc;
+    // } else {
+    //     biK = " ";
+    // }
+    // kingKc = getCookie("king");
+    // if (kingKc != "") {
+    //     if (kingKc == "Space") {
+    //         kingK = " ";
+    //     } else {
+    //         kingK = kingKc;
+    //     }
+    //     document.getElementById("Kking").value = kingKc;
+    // } else {
+    //     kingK = "shift";
+    // }
+
+    var ch1skeys = 0;
+    var oneKey = true;
+
+    // {
+    //     var Parr = [];
+    //     Parr.push(pFK);
+    //     Parr.push(pLK);
+    //     Parr.push(pRK);
+    //     Parr.push(qK);
+    //     Parr.push(roL);
+    //     Parr.push(roR);
+    //     Parr.push(knL);
+    //     Parr.push(knR);
+    //     Parr.push(biK);
+    //     Parr.push(kingK);
+    //     console.log(Parr);
+    //     oneKey = hasDuplicates(Parr);
+    //     console.log(hasDuplicates(Parr));
+    // }
+
+    if (oneKey) {
+        document.getElementsByTagName("summary")[0].innerText = "Please make sure you use different keys for each piece";
+        document.getElementsByTagName("summary")[0].style.color = "red";
+        ch1skeys = 1;
+        keyORnot = 1;
+        button1.innerText = "Hide";
+        document.getElementById("pieces").style.display = "block";
+        // AddInputListen();
+        setCookie("KeyB", "1");
+        for (var v = 0; v < 10; v++) {
+            var samK = myInputs[v].value;
+            for (var z = 0; z < 10; z++) {
+                if (myInputs[z].value == samK && z != v) {
+                    myInputs[z].style.backgroundColor = "#971400";
+                    myInputs[v].style.backgroundColor = "#971400";
+                }
+            }
+        }
+    }
 };
 
 (function() {
