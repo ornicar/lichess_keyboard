@@ -2,8 +2,6 @@
 var innerContent = function () {
     "use strict";
 
-    let initialized = false;
-
     const moves = ['king', 'queen', 'queen2', 'rookl', 'rookr', 'bishop', 'knightl', 'knightr',
                    'pawnl', 'pawn', 'pawnr'];
 
@@ -45,7 +43,7 @@ var innerContent = function () {
         for (let move of moves) {
             let key = getCookie(move);
             key2move[key] = move;
-            console.log('loaded mapping:', move, key);
+            // console.log('loaded mapping:', move, key);
         }
     };
 
@@ -54,7 +52,7 @@ var innerContent = function () {
         mouse_y = e.clientY;
     };
 
-    let get_color = function() { 
+    let get_color = function() {
         var bparent = $(".cg-wrap")[0];
         return bparent.className.includes("orientation-black") ? "black" : "white";
     };
@@ -199,7 +197,7 @@ var innerContent = function () {
             } else if (move === 'king') {
                 return find_piece(false, (a, b) => true);
             }
-            
+
             return [false, 0, 0];
         }
 
@@ -210,16 +208,6 @@ var innerContent = function () {
             return;
         } else {
             lichess_board = lichess_board[0];
-        }
-            
-        if (!initialized) {
-            my_color = get_color();
-            console.log('my_color', my_color);
-
-            readConfig();
-            mark_doubled_pieces();
-
-            initialized = true;
         }
 
         let key = event.key.toLowerCase();
@@ -242,7 +230,7 @@ var innerContent = function () {
         const piece = move2piece[move];
 
         event.stopPropagation();
-        event.preventDefault();    
+        event.preventDefault();
 
 
         let [found, piece_x, piece_y] = find_legal_move();
@@ -259,7 +247,25 @@ var innerContent = function () {
     };
 
     console.log('lichess keyboard extension loaded');
-    
+
+
+    const observer = new MutationObserver((mutations, observer) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName === 'CG-BOARD') {
+                console.log('added new board');
+
+                my_color = get_color();
+                console.log('my_color', my_color);
+
+                readConfig();
+                mark_doubled_pieces();
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+
+
     document.addEventListener("keydown", keyDown, false);
     document.addEventListener("mousemove", mouseMove, false);
 };
@@ -316,4 +322,3 @@ var innerContent = function () {
         });
     }
 })();
-
