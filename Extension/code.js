@@ -2,8 +2,11 @@
 var innerContent = function () {
     "use strict";
 
-    const moves = ['king', 'queen', 'queen2', 'rookl', 'rookr', 'bishop', 'knightl', 'knightr',
-                   'pawnl', 'pawn', 'pawnr'];
+    const moves = ['pawn', 'pawnl', 'pawnr', 'queen', 'queen2', 'rookl', 'rookr',
+                   'knightl', 'knightr', 'bishop', 'king'];
+
+    const defaults = {'pawn': 'w', 'pawnl': 'q', 'pawnr': 'e', 'queen': 's', 'queen2': 'z', 'rookl': '1',
+                      'rookr': '3', 'knightl': 'a', 'knightr': 'd', 'bishop': 'space', 'king': 'shift'};
 
     const move2piece = {king: 'king', queen: 'queen', queen2: 'queen', rookl: 'rook',
                         rookr: 'rook', bishop: 'bishop', knightl: 'knight', knightr: 'knight',
@@ -15,35 +18,29 @@ var innerContent = function () {
     let left_rook = 0, right_rook = 1, left_knight = 0, right_knight = 1, left_queen = 0, right_queen = 1;
 
 
-    let getCookie = function(cname) {
-        let name = cname + "=";
-        let decodedCookie = decodeURIComponent(document.cookie);
-        let ca = decodedCookie.split(";");
+    let get_cookie = function(name) {
+        const name_value = document.cookie.split(';').find(item => item.trim().startsWith(name + '='));
+        return name_value !== undefined ? decodeURIComponent(name_value.substr(name.length + 2)) : '';
+    }
 
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i].trim();
-
-            if (c.startsWith(name)) {
-                return decodeURIComponent(c.substring(name.length, c.length));
-            }
-        }
-
-        return "";
+    let read_kb_mapping = function(move) {
+        const mapping = get_cookie(move);
+        // console.log('got mapping', move, mapping);
+        return mapping !== '' ? mapping : defaults[move];
     };
 
-    let setCookie = function(cname, cvalue) {
+    let set_cookie = function(name, cvalue) {
         let d = new Date;
         d.setTime(d.getTime() + 1000 * 24 * 60 * 60 * 1000);
         let expires = "expires=" + d.toUTCString();
-
-        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        document.cookie = name + "=" + cvalue + ";" + expires + ";path=/";
     };
 
-    let readConfig = function() {
+    let read_config = function() {
         for (let move of moves) {
-            let key = getCookie(move);
+            let key = read_kb_mapping(move);
+            console.log('loaded mapping', move, key);
             key2move[key] = move;
-            // console.log('loaded mapping:', move, key);
         }
     };
 
@@ -260,7 +257,7 @@ var innerContent = function () {
                 my_color = get_color();
                 console.log('my_color', my_color);
 
-                readConfig();
+                read_config();
                 mark_doubled_pieces();
             }
         });
@@ -271,22 +268,54 @@ var innerContent = function () {
 
     var container = document.createElement("div");
     var keyORnot, KeyCO;
-    KeyCO = getCookie("KeyB");
+    KeyCO = get_cookie("KeyB");
     if (KeyCO != "") {
         keyORnot = parseInt(KeyCO, 10);
     } else {
         keyORnot = 1;
     }
-    var lichess = document.getElementById("main-wrap");
-    lichess.appendChild(container);
-    container.id = "container";
-    container.innerHTML = '<div id="container">' + '<button id="keyboardO">Show</button>' + '<div id="pieces">' + '<label>Pawn Up :</label><input type="text" value="w" id="Kpawnu" class="keyB">' + '<label>Pawn \u21d6 :</label><input type="text" value="q" id="Kpawnl" class="keyB">' + '<label>Pawn \u21d7 :</label><input type = "text" value="e" id="Kpawnr" class="keyB">' + '<label>Queen :</label><input type="text" value="s" id="Kqueen" class="keyB">' + '<label>Rook :</label><input type="text" value="1" id="Krookl" class="keyB">' +
-        '<label>Rook \u25a3 :</label><input type="text" value="3" id="Krookr" class="keyB">' + '<label>Knight :</label><input type="text" value="a" id="Kknightl" class="keyB">' + '<label>Knight \u25a3 :</label><input type="text" value="d" id="Kknightr" class="keyB">' + '<label>Bishop :</label><input type="text" value="Space" id="Kbishop" class="keyB">' + '<label>King :</label><input type="text" value="shift" id="Kking" class="keyB">' + '<label><button id="save">Save</button></label>' + "<summary> Hover the cursor over a destination square and press a corresponding key</summary>" +
-        "</div>" + "</div>";
+
+    const main_wrap = document.getElementById("main-wrap");
+    main_wrap.appendChild(container);
+    container.innerHTML = `
+        <div id="container">
+            <button id="keyboardO">Show</button>
+            <div id="pieces">
+                <label id="save_lbl"><button id="save">Save</button></label>
+                <summary> Hover the cursor over a destination square and press a corresponding key</summary>
+            </div>
+        </div>`;
+            // <label>Pawn Up :</label> <input type="text" value="w" id="Kpawnu" class="keyB">
+            // <label>Pawn \u21d6 :</label> <input type="text" value="q" id="Kpawnl" class="keyB">
+            // <label>Pawn \u21d7 :</label> <input type = "text" value="e" id="Kpawnr" class="keyB">
+            // <label>Queen :</label> <input type="text" value="s" id="Kqueen" class="keyB">
+            // <label>Rook :</label><input type="text" value="1" id="Krookl" class="keyB">
+            // <label>Rook \u25a3 :</label><input type="text" value="3" id="Krookr" class="keyB">
+            // <label>Knight :</label><input type="text" value="a" id="Kknightl" class="keyB">
+            // <label>Knight \u25a3 :</label><input type="text" value="d" id="Kknightr" class="keyB">
+            // <label>Bishop :</label><input type="text" value="Space" id="Kbishop" class="keyB">
+            // <label>King :</label><input type="text" value="shift" id="Kking" class="keyB">
+
+    const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
+        'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
+        'knightl': 'Knight', 'knightr': 'Knight \u25a3', 'bishop': 'Bishop', 'king': 'King'};
 
     var button1 = document.getElementById("keyboardO");
     var pieces = document.getElementById("pieces");
     var myInputs = document.getElementsByClassName("keyB");
+    var save_lbl = document.getElementById("save_lbl");
+
+    for (const move of moves) {
+        var label = document.createElement('label');
+        label.innerText = readable_names[move];
+        pieces.insertBefore(label, save_lbl);
+
+        var input = document.createElement('input');
+        input.setAttribute('type', 'text');
+        input.setAttribute('value', read_kb_mapping(move));
+        input.setAttribute('id', 'lckb_' + move);
+        pieces.insertBefore(input, save_lbl);
+    }
 
 
     button1.addEventListener("click", function (e) {
@@ -296,13 +325,13 @@ var innerContent = function () {
             document.getElementById("pieces").style.display = "none";
             // RemoveInputListen();
             keyORnot = 0;
-            setCookie("KeyB", "0");
+            set_cookie("KeyB", "0");
         } else {
             keyORnot = 1;
             button1.innerText = "Hide";
             document.getElementById("pieces").style.display = "block";
             // AddInputListen();
-            setCookie("KeyB", "1");
+            set_cookie("KeyB", "1");
         }
         button1.blur();
     });
@@ -447,25 +476,25 @@ var innerContent = function () {
     //     console.log(hasDuplicates(Parr));
     // }
 
-    if (oneKey) {
-        document.getElementsByTagName("summary")[0].innerText = "Please make sure you use different keys for each piece";
-        document.getElementsByTagName("summary")[0].style.color = "red";
-        ch1skeys = 1;
-        keyORnot = 1;
-        button1.innerText = "Hide";
-        document.getElementById("pieces").style.display = "block";
-        // AddInputListen();
-        setCookie("KeyB", "1");
-        for (var v = 0; v < 10; v++) {
-            var samK = myInputs[v].value;
-            for (var z = 0; z < 10; z++) {
-                if (myInputs[z].value == samK && z != v) {
-                    myInputs[z].style.backgroundColor = "#971400";
-                    myInputs[v].style.backgroundColor = "#971400";
-                }
-            }
-        }
-    }
+    // if (oneKey) {
+    //     document.getElementsByTagName("summary")[0].innerText = "Please make sure you use a unique key for every piece";
+    //     document.getElementsByTagName("summary")[0].style.color = "red";
+    //     ch1skeys = 1;
+    //     keyORnot = 1;
+    //     button1.innerText = "Hide";
+    //     document.getElementById("pieces").style.display = "block";
+    //     // AddInputListen();
+    //     set_cookie("KeyB", "1");
+    //     for (var v = 0; v < 10; v++) {
+    //         var samK = myInputs[v].value;
+    //         for (var z = 0; z < 10; z++) {
+    //             if (myInputs[z].value == samK && z != v) {
+    //                 myInputs[z].style.backgroundColor = "#971400";
+    //                 myInputs[v].style.backgroundColor = "#971400";
+    //             }
+    //         }
+    //     }
+    // }
 };
 
 (function() {
