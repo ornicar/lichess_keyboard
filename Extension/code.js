@@ -47,6 +47,12 @@ let innerContent = function () {
         }
     };
 
+    let save_config = function() {
+        key2move.forEach((move, key) => {
+            set_cookie(move, (key !== ' ') ? key : 'space');
+        });
+    };
+
     let mouseMove = function(e) {
         mouse_x = e.clientX;
         mouse_y = e.clientY;
@@ -271,8 +277,6 @@ let innerContent = function () {
         let current_bindings = invertMapping(key2move);
         let all_inputs = new Map();
 
-        console.log(current_bindings);
-
 
         let configKeyDown = function(event) {
             event.preventDefault();
@@ -304,15 +308,20 @@ let innerContent = function () {
 
                     used_keys.set(key, move);
                 });
+
+                summary.innerText = "Please make sure you use a unique key for each piece";
+                summary.style.color = "red";
             } else {
                 // save new bindings
                 all_inputs.forEach((input, move) => {
-                    // console.log(move, input, input.style);
                     input.style.backgroundColor = "#636064";
                 });
 
                 key2move = invertMapping(current_bindings);
-                // TODO: setCookie("pawn", pFK)....
+                save_config();
+
+                summary.innerText = "Hover the cursor over a destination square and press a corresponding key";
+                summary.style.color = "#b6a9b9";
             }
         }
 
@@ -338,13 +347,11 @@ let innerContent = function () {
                 document.getElementById("pieces").style.display = "none";
                 // RemoveInputListen();
                 keyORnot = 0;
-                // set_cookie("KeyB", "0");
             } else {
                 keyORnot = 1;
                 show_btn.innerText = "Hide";
                 document.getElementById("pieces").style.display = "block";
                 // AddInputListen();
-                // set_cookie("KeyB", "1");
             }
             show_btn.blur();
         });
@@ -371,55 +378,6 @@ let innerContent = function () {
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
     generateConfigMenu();
-
-    // if (keyORnot == 1) {
-    //     show_btn.innerText = "Hide";
-    //     document.getElementById("pieces").style.display = "block";
-    //     // AddInputListen();
-    // } else {
-    //     show_btn.innerText = "Keys";
-    //     document.getElementById("pieces").style.display = "none";
-    // }
-    //
-    // var ch1skeys = 0;
-    // var oneKey = true;
-
-    // {
-    //     var Parr = [];
-    //     Parr.push(pFK);
-    //     Parr.push(pLK);
-    //     Parr.push(pRK);
-    //     Parr.push(qK);
-    //     Parr.push(roL);
-    //     Parr.push(roR);
-    //     Parr.push(knL);
-    //     Parr.push(knR);
-    //     Parr.push(biK);
-    //     Parr.push(kingK);
-    //     console.log(Parr);
-    //     oneKey = hasDuplicates(Parr);
-    //     console.log(hasDuplicates(Parr));
-    // }
-
-    // if (oneKey) {
-    //     document.getElementsByTagName("summary")[0].innerText = "Please make sure you use a unique key for every piece";
-    //     document.getElementsByTagName("summary")[0].style.color = "red";
-    //     ch1skeys = 1;
-    //     keyORnot = 1;
-    //     show_btn.innerText = "Hide";
-    //     document.getElementById("pieces").style.display = "block";
-    //     // AddInputListen();
-    //     set_cookie("KeyB", "1");
-    //     for (var v = 0; v < 10; v++) {
-    //         var samK = myInputs[v].value;
-    //         for (var z = 0; z < 10; z++) {
-    //             if (myInputs[z].value == samK && z != v) {
-    //                 myInputs[z].style.backgroundColor = "#971400";
-    //                 myInputs[v].style.backgroundColor = "#971400";
-    //             }
-    //         }
-    //     }
-    // }
 };
 
 (function() {
