@@ -37,7 +37,11 @@
 
 #container{padding-left:5px; margin-top: 25px;display: inline-block;clear: left;width: 237px;}
 
-#pieces{padding-left:5px; margin-top: 25px;display: inline-block;}
+#pieces {
+    padding-left:5px;
+    margin-top: 25px;
+    display: none;
+}
 
 #container summary {
     width: 187px;

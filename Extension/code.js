@@ -20,7 +20,7 @@ let innerContent = function () {
     let mouse_x = 0, mouse_y = 0;
     let my_color = 'white';
     let left_rook = 0, right_rook = 1, left_knight = 0, right_knight = 1, left_queen = 0, right_queen = 1;
-
+    let menu_active = false;
 
     let get_cookie = function(name) {
         const name_value = document.cookie.split(';').find(item => item.trim().startsWith(name + '='));
@@ -42,14 +42,13 @@ let innerContent = function () {
     let read_config = function() {
         for (let move of moves) {
             let key = read_kb_mapping(move);
-            console.log('loaded mapping', move, key);
             key2move.set(key, move);
         }
     };
 
     let save_config = function() {
         key2move.forEach((move, key) => {
-            set_cookie(move, (key !== ' ') ? key : 'space');
+            set_cookie(move, (key === ' ') ? 'space' : key);
         });
     };
 
@@ -210,7 +209,7 @@ let innerContent = function () {
 
         let lichess_board = document.getElementsByTagName('cg-board');
 
-        if (lichess_board.length != 1) {
+        if (lichess_board.length != 1 || menu_active) {
             return;
         } else {
             lichess_board = lichess_board[0];
@@ -254,9 +253,8 @@ let innerContent = function () {
 
     let generateConfigMenu = function(event) {
         let container = document.createElement("div");
-        let keyORnot = 1;
+        let main_wrap = document.getElementById("main-wrap");
 
-        const main_wrap = document.getElementById("main-wrap");
         main_wrap.appendChild(container);
         container.innerHTML = `
             <div id="container">
@@ -280,21 +278,17 @@ let innerContent = function () {
 
         let configKeyDown = function(event) {
             event.preventDefault();
-            const key = (event.key === ' ') ? 'space' : event.key.toLowerCase();
+            const key = event.key.toLowerCase();
             const input_id = this.id;
             const move = input_id.substr(4);
 
-            console.log('configKeyDown', move, key);
-            console.log('all_inputs', all_inputs);
-            document.getElementById(input_id).value = key;
+            document.getElementById(input_id).value = (key === ' ') ? 'space' : key;
             current_bindings.set(move, key);
 
             // check for conflicts
             const unique_vals = new Set(Array.from(current_bindings, ([move, key]) => key));
-            console.log('unique_vals', unique_vals);
-            console.log('unique vs total', unique_vals.size, current_bindings.size);
 
-            // if there are conflicts, mark them; otherwise, set bkgr to normal
+            // if there are conflicts, mark them
             if (unique_vals.size !== current_bindings.size) {
                 let used_keys = new Map();
 
@@ -312,7 +306,7 @@ let innerContent = function () {
                 summary.innerText = "Please make sure you use a unique key for each piece";
                 summary.style.color = "red";
             } else {
-                // save new bindings
+                // save new bindings and set the background to normal
                 all_inputs.forEach((input, move) => {
                     input.style.backgroundColor = "#636064";
                 });
@@ -342,18 +336,16 @@ let innerContent = function () {
 
         show_btn.addEventListener("click", function (e) {
             e.preventDefault();
-            if (keyORnot == 1) {
-                show_btn.innerText = "Keys";
-                document.getElementById("pieces").style.display = "none";
-                // RemoveInputListen();
-                keyORnot = 0;
-            } else {
-                keyORnot = 1;
-                show_btn.innerText = "Hide";
-                document.getElementById("pieces").style.display = "block";
-                // AddInputListen();
-            }
+            menu_active = !menu_active;
             show_btn.blur();
+
+            if (!menu_active) {
+                show_btn.innerText = "Keys";
+                pieces.style.display = "none";
+            } else {
+                show_btn.innerText = "Hide";
+                pieces.style.display = "block";
+            }
         });
     }
 
