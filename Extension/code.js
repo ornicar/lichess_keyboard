@@ -25,7 +25,6 @@ var innerContent = function () {
 
     let read_kb_mapping = function(move) {
         const mapping = get_cookie(move);
-        // console.log('got mapping', move, mapping);
         return mapping !== '' ? mapping : defaults[move];
     };
 
@@ -266,79 +265,109 @@ var innerContent = function () {
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
 
-    var container = document.createElement("div");
-    var keyORnot, KeyCO;
-    KeyCO = get_cookie("KeyB");
-    if (KeyCO != "") {
-        keyORnot = parseInt(KeyCO, 10);
-    } else {
-        keyORnot = 1;
+    let configKeyDown = function(event) {
+        event.preventDefault();
+        var storeK = event.key.toLowerCase();
+        AssignKeys(this.id, storeK);
     }
 
-    const main_wrap = document.getElementById("main-wrap");
-    main_wrap.appendChild(container);
-    container.innerHTML = `
-        <div id="container">
-            <button id="show_btn">Keys</button>
-            <div id="pieces">
-                <label id="save_lbl"><button id="save">Save</button></label>
-                <summary> Hover the cursor over a destination square and press a corresponding key</summary>
-            </div>
-        </div>`;
-        // <label>Pawn Up :</label> <input type="text" value="w" id="Kpawnu" class="keyB">
-        // <label>Pawn \u21d6 :</label> <input type="text" value="q" id="Kpawnl" class="keyB">
-        // <label>Pawn \u21d7 :</label> <input type = "text" value="e" id="Kpawnr" class="keyB">
+    var AssignKeys = function (idK, storeK) {
+        console.log('AssignKeys', idK, storeK);
 
-    const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
-        'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
-        'knightl': 'Knight', 'knightr': 'Knight \u25a3', 'bishop': 'Bishop', 'king': 'King'};
-
-    var show_btn = document.getElementById("show_btn");
-    var pieces = document.getElementById("pieces");
-    var myInputs = document.getElementsByClassName("keyB");
-    var save_lbl = document.getElementById("save_lbl");
-
-    for (const move of moves) {
-        var label = document.createElement('label');
-        label.innerText = readable_names[move];
-        pieces.insertBefore(label, save_lbl);
-
-        var input = document.createElement('input');
-        input.setAttribute('type', 'text');
-        input.setAttribute('value', read_kb_mapping(move));
-        input.setAttribute('id', 'lckb_' + move);
-        pieces.insertBefore(input, save_lbl);
-    }
-
-    show_btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        if (keyORnot == 1) {
-            show_btn.innerText = "Keys";
-            document.getElementById("pieces").style.display = "none";
-            // RemoveInputListen();
-            keyORnot = 0;
-            set_cookie("KeyB", "0");
+        if (storeK == " ") {
+            document.getElementById(idK).value = "Space";
         } else {
-            keyORnot = 1;
-            show_btn.innerText = "Hide";
-            document.getElementById("pieces").style.display = "block";
-            // AddInputListen();
-            set_cookie("KeyB", "1");
+            document.getElementById(idK).value = storeK;
         }
-        show_btn.blur();
-    });
-
-    if (keyORnot == 1) {
-        show_btn.innerText = "Hide";
-        document.getElementById("pieces").style.display = "block";
-        // AddInputListen();
-    } else {
-        show_btn.innerText = "Keys";
-        document.getElementById("pieces").style.display = "none";
+        // if (idK == "Kpawnu") {
+        //     pFK = storeK;
+        //     if (storeK == " ") {
+        //         setCookie("pawn", "Space");
+        //     } else {
+        //         setCookie("pawn", pFK);
+        //     }
+        // }
     }
 
-    var ch1skeys = 0;
-    var oneKey = true;
+    let generateConfigMenu = function(event) {
+        var container = document.createElement("div");
+        var keyORnot = 1, KeyCO;
+        // KeyCO = get_cookie("KeyB");
+        // if (KeyCO != "") {
+        //     keyORnot = parseInt(KeyCO, 10);
+        // } else {
+        //     keyORnot = 1;
+        // }
+
+        const main_wrap = document.getElementById("main-wrap");
+        main_wrap.appendChild(container);
+        container.innerHTML = `
+            <div id="container">
+                <button id="show_btn">Keys</button>
+                <div id="pieces">
+                    <label id="save_lbl"><button id="save">Save</button></label>
+                    <summary> Hover the cursor over a destination square and press a corresponding key</summary>
+                </div>
+            </div>`;
+            // <label>Pawn Up :</label> <input type="text" value="w" id="Kpawnu" class="keyB">
+            // <label>Pawn \u21d6 :</label> <input type="text" value="q" id="Kpawnl" class="keyB">
+            // <label>Pawn \u21d7 :</label> <input type = "text" value="e" id="Kpawnr" class="keyB">
+
+        const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
+            'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
+            'knightl': 'Knight', 'knightr': 'Knight \u25a3', 'bishop': 'Bishop', 'king': 'King'};
+
+        var show_btn = document.getElementById("show_btn");
+        var pieces = document.getElementById("pieces");
+        var myInputs = document.getElementsByClassName("keyB");
+        var save_lbl = document.getElementById("save_lbl");
+
+        for (const move of moves) {
+            var label = document.createElement('label');
+            label.innerText = readable_names[move];
+            pieces.insertBefore(label, save_lbl);
+
+            var input = document.createElement('input');
+            input.setAttribute('type', 'text');
+            input.setAttribute('value', read_kb_mapping(move));
+            input.setAttribute('id', 'key_' + move);
+            // input.setAttribute('class', 'keyB');
+            input.addEventListener("keydown", configKeyDown, false);
+            pieces.insertBefore(input, save_lbl);
+        }
+
+        show_btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (keyORnot == 1) {
+                show_btn.innerText = "Keys";
+                document.getElementById("pieces").style.display = "none";
+                // RemoveInputListen();
+                keyORnot = 0;
+                set_cookie("KeyB", "0");
+            } else {
+                keyORnot = 1;
+                show_btn.innerText = "Hide";
+                document.getElementById("pieces").style.display = "block";
+                // AddInputListen();
+                set_cookie("KeyB", "1");
+            }
+            show_btn.blur();
+        });
+    }
+
+    generateConfigMenu();
+
+    // if (keyORnot == 1) {
+    //     show_btn.innerText = "Hide";
+    //     document.getElementById("pieces").style.display = "block";
+    //     // AddInputListen();
+    // } else {
+    //     show_btn.innerText = "Keys";
+    //     document.getElementById("pieces").style.display = "none";
+    // }
+    //
+    // var ch1skeys = 0;
+    // var oneKey = true;
 
     // {
     //     var Parr = [];
