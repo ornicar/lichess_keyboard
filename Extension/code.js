@@ -1,9 +1,13 @@
 ﻿
-var innerContent = function () {
+let innerContent = function () {
     "use strict";
 
     const moves = ['pawn', 'pawnl', 'pawnr', 'queen', 'queen2', 'rookl', 'rookr',
                    'knightl', 'knightr', 'bishop', 'king'];
+
+    const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
+        'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
+        'knightl': 'Knight', 'knightr': 'Knight \u25a3', 'bishop': 'Bishop', 'king': 'King'};
 
     const defaults = {'pawn': 'w', 'pawnl': 'q', 'pawnr': 'e', 'queen': 's', 'queen2': 'z', 'rookl': '1',
                       'rookr': '3', 'knightl': 'a', 'knightr': 'd', 'bishop': 'space', 'king': 'shift'};
@@ -12,7 +16,7 @@ var innerContent = function () {
                         rookr: 'rook', bishop: 'bishop', knightl: 'knight', knightr: 'knight',
                         pawnl: 'pawn', pawn: 'pawn', pawnr: 'pawn'};
 
-    let key2move = {};
+    let key2move = new Map();
     let mouse_x = 0, mouse_y = 0;
     let my_color = 'white';
     let left_rook = 0, right_rook = 1, left_knight = 0, right_knight = 1, left_queen = 0, right_queen = 1;
@@ -39,7 +43,7 @@ var innerContent = function () {
         for (let move of moves) {
             let key = read_kb_mapping(move);
             console.log('loaded mapping', move, key);
-            key2move[key] = move;
+            key2move.set(key, move);
         }
     };
 
@@ -49,7 +53,7 @@ var innerContent = function () {
     };
 
     let get_color = function() {
-        var bparent = $(".cg-wrap")[0];
+        let bparent = $(".cg-wrap")[0];
         return bparent.className.includes("orientation-black") ? "black" : "white";
     };
 
@@ -207,7 +211,7 @@ var innerContent = function () {
         }
 
         let key = event.key.toLowerCase();
-        if (!(key in key2move)) {
+        if (!key2move.has(key)) {
             return;
         }
 
@@ -222,7 +226,7 @@ var innerContent = function () {
 
         const [x, y] = get_board_coords(mouse_x, mouse_y);
 
-        const move = key2move[key];
+        const move = key2move.get(key);
         const piece = move2piece[move];
 
         event.stopPropagation();
@@ -242,40 +246,9 @@ var innerContent = function () {
         }
     };
 
-
-    let configKeyDown = function(event) {
-        event.preventDefault();
-        var storeK = event.key.toLowerCase();
-        AssignKeys(this.id, storeK);
-    }
-
-    var AssignKeys = function (idK, storeK) {
-        console.log('AssignKeys', idK, storeK);
-
-        if (storeK == " ") {
-            document.getElementById(idK).value = "Space";
-        } else {
-            document.getElementById(idK).value = storeK;
-        }
-        // if (idK == "Kpawnu") {
-        //     pFK = storeK;
-        //     if (storeK == " ") {
-        //         setCookie("pawn", "Space");
-        //     } else {
-        //         setCookie("pawn", pFK);
-        //     }
-        // }
-    }
-
     let generateConfigMenu = function(event) {
-        var container = document.createElement("div");
-        var keyORnot = 1, KeyCO;
-        // KeyCO = get_cookie("KeyB");
-        // if (KeyCO != "") {
-        //     keyORnot = parseInt(KeyCO, 10);
-        // } else {
-        //     keyORnot = 1;
-        // }
+        let container = document.createElement("div");
+        let keyORnot = 1;
 
         const main_wrap = document.getElementById("main-wrap");
         main_wrap.appendChild(container);
@@ -283,34 +256,80 @@ var innerContent = function () {
             <div id="container">
                 <button id="show_btn">Keys</button>
                 <div id="pieces">
-                    <label id="save_lbl"><button id="save">Save</button></label>
-                    <summary> Hover the cursor over a destination square and press a corresponding key</summary>
+                    <summary>Hover the cursor over a destination square and press a corresponding key</summary>
                 </div>
             </div>`;
 
-        const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
-            'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
-            'knightl': 'Knight', 'knightr': 'Knight \u25a3', 'bishop': 'Bishop', 'king': 'King'};
+        const show_btn = document.getElementById("show_btn");
+        const pieces = document.getElementById("pieces");
+        const summary = document.getElementsByTagName("summary")[0];
 
-        var show_btn = document.getElementById("show_btn");
-        var pieces = document.getElementById("pieces");
-        var save_lbl = document.getElementById("save_lbl");
+        let invertMapping = function(map) {
+            return new Map(Array.from(map, pair => pair.reverse()));
+        }
+
+        let current_bindings = invertMapping(key2move);
+        let all_inputs = new Map();
+
+        console.log(current_bindings);
+
+
+        let configKeyDown = function(event) {
+            event.preventDefault();
+            const key = (event.key === ' ') ? 'space' : event.key.toLowerCase();
+            const input_id = this.id;
+            const move = input_id.substr(4);
+
+            console.log('configKeyDown', move, key);
+            console.log('all_inputs', all_inputs);
+            document.getElementById(input_id).value = key;
+            current_bindings.set(move, key);
+
+            // check for conflicts
+            const unique_vals = new Set(Array.from(current_bindings, ([move, key]) => key));
+            console.log('unique_vals', unique_vals);
+            console.log('unique vs total', unique_vals.size, current_bindings.size);
+
+            // if there are conflicts, mark them; otherwise, set bkgr to normal
+            if (unique_vals.size !== current_bindings.size) {
+                let used_keys = new Map();
+
+                current_bindings.forEach((key, move) => {
+                    if (used_keys.has(key)) {
+                        all_inputs.get(move).style.backgroundColor = "#971400";
+                        all_inputs.get(used_keys.get(key)).style.backgroundColor = "#971400";
+                    } else {
+                        all_inputs.get(move).style.backgroundColor = "#636064";
+                    }
+
+                    used_keys.set(key, move);
+                });
+            } else {
+                // save new bindings
+                all_inputs.forEach((input, move) => {
+                    // console.log(move, input, input.style);
+                    input.style.backgroundColor = "#636064";
+                });
+
+                key2move = invertMapping(current_bindings);
+                // TODO: setCookie("pawn", pFK)....
+            }
+        }
 
         for (const move of moves) {
-            var label = document.createElement('label');
+            let label = document.createElement('label');
             label.innerText = readable_names[move];
-            pieces.insertBefore(label, save_lbl);
+            pieces.insertBefore(label, summary);
 
-            var input = document.createElement('input');
+            let input = document.createElement('input');
             input.setAttribute('type', 'text');
             input.setAttribute('value', read_kb_mapping(move));
             input.setAttribute('id', 'key_' + move);
             input.setAttribute('class', 'key_mapping');
             input.addEventListener("keydown", configKeyDown, false);
-            pieces.insertBefore(input, save_lbl);
+            pieces.insertBefore(input, summary);
+            all_inputs.set(move, input);
         }
-
-        const myInputs = document.getElementsByClassName('key_mapping');
 
         show_btn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -319,13 +338,13 @@ var innerContent = function () {
                 document.getElementById("pieces").style.display = "none";
                 // RemoveInputListen();
                 keyORnot = 0;
-                set_cookie("KeyB", "0");
+                // set_cookie("KeyB", "0");
             } else {
                 keyORnot = 1;
                 show_btn.innerText = "Hide";
                 document.getElementById("pieces").style.display = "block";
                 // AddInputListen();
-                set_cookie("KeyB", "1");
+                // set_cookie("KeyB", "1");
             }
             show_btn.blur();
         });
@@ -333,6 +352,7 @@ var innerContent = function () {
 
 
     console.log('lichess keyboard extension loaded');
+    read_config();
 
     document.addEventListener("keydown", keyDown, false);
     document.addEventListener("mousemove", mouseMove, false);
@@ -341,12 +361,8 @@ var innerContent = function () {
     const observer = new MutationObserver((mutations, observer) => {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName === 'CG-BOARD') {
-                console.log('added new board');
-
                 my_color = get_color();
-                console.log('my_color', my_color);
-
-                read_config();
+                console.log('added new board, color is', my_color);
                 mark_doubled_pieces();
             }
         });
