@@ -242,28 +242,6 @@ var innerContent = function () {
         }
     };
 
-    console.log('lichess keyboard extension loaded');
-
-    document.addEventListener("keydown", keyDown, false);
-    document.addEventListener("mousemove", mouseMove, false);
-
-
-    const observer = new MutationObserver((mutations, observer) => {
-        mutations.forEach((mutation) => {
-            if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName === 'CG-BOARD') {
-                console.log('added new board');
-
-                my_color = get_color();
-                console.log('my_color', my_color);
-
-                read_config();
-                mark_doubled_pieces();
-            }
-        });
-    });
-
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-
 
     let configKeyDown = function(event) {
         event.preventDefault();
@@ -309,9 +287,6 @@ var innerContent = function () {
                     <summary> Hover the cursor over a destination square and press a corresponding key</summary>
                 </div>
             </div>`;
-            // <label>Pawn Up :</label> <input type="text" value="w" id="Kpawnu" class="keyB">
-            // <label>Pawn \u21d6 :</label> <input type="text" value="q" id="Kpawnl" class="keyB">
-            // <label>Pawn \u21d7 :</label> <input type = "text" value="e" id="Kpawnr" class="keyB">
 
         const readable_names = {'pawn': 'Pawn Up', 'pawnl': 'Pawn \u21d6 ', 'pawnr': 'Pawn \u21d7 ',
             'queen': 'Queen', 'queen2': 'Queen \u25a3', 'rookl': 'Rook', 'rookr': 'Rook \u25a3',
@@ -319,7 +294,6 @@ var innerContent = function () {
 
         var show_btn = document.getElementById("show_btn");
         var pieces = document.getElementById("pieces");
-        var myInputs = document.getElementsByClassName("keyB");
         var save_lbl = document.getElementById("save_lbl");
 
         for (const move of moves) {
@@ -331,10 +305,12 @@ var innerContent = function () {
             input.setAttribute('type', 'text');
             input.setAttribute('value', read_kb_mapping(move));
             input.setAttribute('id', 'key_' + move);
-            // input.setAttribute('class', 'keyB');
+            input.setAttribute('class', 'key_mapping');
             input.addEventListener("keydown", configKeyDown, false);
             pieces.insertBefore(input, save_lbl);
         }
+
+        const myInputs = document.getElementsByClassName('key_mapping');
 
         show_btn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -354,6 +330,29 @@ var innerContent = function () {
             show_btn.blur();
         });
     }
+
+
+    console.log('lichess keyboard extension loaded');
+
+    document.addEventListener("keydown", keyDown, false);
+    document.addEventListener("mousemove", mouseMove, false);
+
+
+    const observer = new MutationObserver((mutations, observer) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName === 'CG-BOARD') {
+                console.log('added new board');
+
+                my_color = get_color();
+                console.log('my_color', my_color);
+
+                read_config();
+                mark_doubled_pieces();
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { childList: true, subtree: true });
 
     generateConfigMenu();
 
