@@ -15,7 +15,7 @@ This is an example of adding an extension from a folder:
 https://www.youtube.com/watch?v=hIRX1dpfqHc
 
 ## Play
-1. Press and hold the button to select a piece
-2. Point the mouse to its destination
+1. Press and hold the button to select a piece.
+2. Point the mouse to its destination.
 
 ## Have fun!
