@@ -369,7 +369,7 @@ let innerContent = function () {
             if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName.toLowerCase() === 'script') {
                 let script = mutation.addedNodes[0];
 
-                if (script.src.endsWith('chessground.min.js')) {
+                if (script.src.endsWith('chessground.min.js') || script.src.endsWith('analysisBoard.min.js')) {
                     activate = false;
                 }
 
