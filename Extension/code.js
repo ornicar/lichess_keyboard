@@ -21,6 +21,7 @@ let innerContent = function () {
     let my_color = 'white';
     let left_rook = 0, right_rook = 1, left_knight = 0, right_knight = 1, left_queen = 0, right_queen = 1;
     let menu_active = false;
+    let current_key;
 
     let get_cookie = function(name) {
         const name_value = document.cookie.split(';').find(item => item.trim().startsWith(name + '='));
@@ -50,11 +51,6 @@ let innerContent = function () {
         key2move.forEach((move, key) => {
             set_cookie(move, (key === ' ') ? 'space' : key);
         });
-    };
-
-    let mouseMove = function(e) {
-        mouse_x = e.clientX;
-        mouse_y = e.clientY;
     };
 
     let get_color = function() {
@@ -97,7 +93,7 @@ let innerContent = function () {
         }
     }
 
-    let keyDown = function(event) {
+    let moveSomething = function() {
 
         let mouseEvent = function(type, x, y) {
             let e = new MouseEvent(type, {view: window, bubbles: true, cancelable: false,
@@ -209,15 +205,10 @@ let innerContent = function () {
 
         let lichess_board = document.getElementsByTagName('cg-board');
 
-        if (lichess_board.length != 1 || menu_active) {
+        if (lichess_board.length != 1) { // || menu_active) {
             return;
         } else {
             lichess_board = lichess_board[0];
-        }
-
-        let key = event.key.toLowerCase();
-        if (!key2move.has(key)) {
-            return;
         }
 
         const board_rect = lichess_board.getBoundingClientRect();
@@ -228,15 +219,14 @@ let innerContent = function () {
             return;
         }
 
-
-        const [x, y] = get_board_coords(mouse_x, mouse_y);
-
-        const move = key2move.get(key);
-        const piece = move2piece[move];
-
         event.stopPropagation();
         event.preventDefault();
 
+
+        const [x, y] = get_board_coords(mouse_x, mouse_y);
+
+        const move = key2move.get(current_key);
+        const piece = move2piece[move];
 
         let [found, piece_x, piece_y] = find_legal_move();
 
@@ -250,6 +240,30 @@ let innerContent = function () {
             mouseEvent('mouseup', mouse_x, mouse_y);
         }
     };
+
+    let mouseMove = function(e) {
+        mouse_x = e.clientX;
+        mouse_y = e.clientY;
+
+        if (current_key) {
+            moveSomething();
+        }
+    };
+
+    let keyDown = function(event) {
+        const key = event.key.toLowerCase();
+        if (!key2move.has(key)) {
+            return;
+        }
+
+        current_key = key;
+        moveSomething();
+    };
+
+    let keyUp = function(event) {
+        current_key = undefined;
+    }
+
 
     let generateConfigMenu = function(event) {
         let container = document.createElement("div");
@@ -354,6 +368,7 @@ let innerContent = function () {
     read_config();
 
     document.addEventListener("keydown", keyDown, false);
+    document.addEventListener("keyup", keyUp, false);
     document.addEventListener("mousemove", mouseMove, false);
 
 
