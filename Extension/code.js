@@ -115,32 +115,6 @@ let innerContent = function () {
             return get_board_coords(x, y)
         }
 
-        // checks whether the given path is free of other pieces.
-        // Both start and end  must be on the same line: horizontal, vertical or diagonal.
-        let is_path_clear = function(x1, y1, x2, y2) {
-            const dx = Math.sign(x2 - x1), dy = Math.sign(y2 - y1);
-            let path = new Set();
-
-            for (let i = 1, x = x1 + dx, y = y1 + dy; i < 8; i++, x += dx, y += dy) {
-                if (x == x2 && y == y2) {
-                    break;
-                }
-
-                path.add(8 * x + y);
-            }
-
-
-            for (const piece of lichess_board.getElementsByTagName('piece')) {
-                const [x, y] = get_piece_coords(piece.getBoundingClientRect());
-
-                if (path.has(8 * x + y)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         // find the first piece matching the criterio
         let find_piece = function(reverse_order, is_suitable) {
             const cls = `${my_color} ${piece}`;
@@ -165,7 +139,7 @@ let innerContent = function () {
         let find_legal_move = function() {
             if (move === 'pawn') {
                 return find_piece(false, (a, b) => {
-                    return a == x && (b == y + 1 || b == y + 2) && is_path_clear(a, b, x, y);
+                    return a == x && (b == y + 1 || b == y + 2);
                 });
             } else if (move === 'pawnl') {
                 return find_piece(false, (a, b) => {
@@ -182,18 +156,16 @@ let innerContent = function () {
                 });
             } else if (piece === 'rook') {
                 return find_piece((move === 'rookr') ^ (my_color === 'black'), (a, b) => {
-                    return (a == x || b == y) && is_path_clear(a, b, x, y);
+                    return (a == x || b == y);
                 });
             } else if (move === 'bishop') {
                 return find_piece(false, (a, b) => {
-                    return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y))
-                           && is_path_clear(a, b, x, y);
+                    return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y));
                 });
             } else if (move === 'queen') {
                 return find_piece((move === 'queen2'), (a, b) => {
                     return (a == x || b == y ||
-                           Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)))
-                           && is_path_clear(a, b, x, y);
+                           Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)));
                 });
             } else if (move === 'king') {
                 return find_piece(false, (a, b) => true);
@@ -364,7 +336,7 @@ let innerContent = function () {
     }
 
 
-    console.log('lichess keyboard extension loaded');
+    // console.log('lichess keyboard extension loaded');
     read_config();
 
     document.addEventListener("keydown", keyDown, false);
@@ -376,7 +348,7 @@ let innerContent = function () {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes[0] && mutation.addedNodes[0].tagName && mutation.addedNodes[0].tagName === 'CG-BOARD') {
                 my_color = get_color();
-                console.log('added new board, color is', my_color);
+                // console.log('added new board, color is', my_color);
                 mark_doubled_pieces();
             }
         });
