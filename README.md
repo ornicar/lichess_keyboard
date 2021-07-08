@@ -19,3 +19,4 @@ https://www.youtube.com/watch?v=hIRX1dpfqHc
 2. Point the mouse to its destination.
 
 ## Have fun!
+You can use it in normal games as well as in Puzzles, Puzzle Storm, Puzzle Races, etc.
