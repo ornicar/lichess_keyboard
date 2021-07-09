@@ -233,7 +233,10 @@ let innerContent = function () {
     };
 
     let keyUp = function(event) {
-        current_key = undefined;
+        const key = event.key.toLowerCase();
+        if (key == current_key) {
+            current_key = undefined;
+        }
     }
 
 
