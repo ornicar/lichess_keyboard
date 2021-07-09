@@ -29,7 +29,7 @@ let innerContent = function () {
     }
 
     let read_kb_mapping = function(move) {
-        const mapping = get_cookie(move);
+        const mapping = get_cookie(move).toLowerCase();
         return mapping !== '' ? mapping : defaults[move];
     };
 
@@ -162,7 +162,7 @@ let innerContent = function () {
                 return find_piece(false, (a, b) => {
                     return Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y));
                 });
-            } else if (move === 'queen') {
+            } else if (piece === 'queen') {
                 return find_piece((move === 'queen2'), (a, b) => {
                     return (a == x || b == y ||
                            Math.round(Math.abs(a - x)) == Math.round(Math.abs(b - y)));
