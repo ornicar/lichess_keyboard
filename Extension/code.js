@@ -224,10 +224,6 @@ let innerContent = function () {
 
     let keyDown = function(event) {
         const key = event.key.toLowerCase();
-        if (!key2move.has(key)) {
-            return;
-        }
-
         current_key = key;
         moveSomething();
     };
@@ -346,6 +342,12 @@ let innerContent = function () {
     document.addEventListener("keyup", keyUp, false);
     document.addEventListener("mousemove", mouseMove, false);
 
+    document.addEventListener("visibilitychange", event => {
+        if (document.visibilityState !== "visible") {
+            current_key = undefined;
+            mouse_x = mouse_y = 0;
+        }
+    })
 
     const observer = new MutationObserver((mutations, observer) => {
         mutations.forEach((mutation) => {
